@@ -91,6 +91,10 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     history_of_offers.drop_duplicates(inplace=True)
     history_of_offers.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/history_job_offers.csv', index=False)
 
+    # Vider le fichier new_job_offers.csv
+    old_df.drop(old_df.index, inplace=True)
+    old_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
+
     # Chercher les nouvelles offres d'emploi
     options = Options()
     driver=webdriver.Chrome(options=options)
@@ -133,6 +137,8 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     job_url=[]
     faulty_links=[]
     no_jobs=[]
+    scraping_error=[]
+    scraping_flaw=[]
 
     # se rendre sur chaque page linkedin et récupérer les offres d'emploi
     for url in linkedin_list['Linkedin']:
@@ -175,11 +181,23 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
 
             else :
 
+                job_company=[]
+                job_title=[]
+                job_date=[]
+                job_url=[]
+
                 #close chat window to avoid date/time errors
                 chat_window = driver.find_element(By.XPATH, '//*[@id="msg-overlay"]/div[1]/header/div[2]/button')
-                if driver.find_element(By.XPATH, '//*[@id="msg-overlay-list-bubble-search__search-typeahead-input"]') != None:
-                    chat_window.click()
-                    driver.implicitly_wait(2)
+                try :
+                    if driver.find_element(By.XPATH, '//*[@id="msg-overlay-list-bubble-search__search-typeahead-input"]') != None:
+                        chat_window.click()
+                        driver.implicitly_wait(2)
+                except :
+                    scraping_error.append(url)
+                    scraping_flaw.append('Unable to locate element')
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
 
                 job_results=WebDriverWait(driver, 10).until(ec.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')))
                 results=job_results.find_element(By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')
@@ -205,27 +223,35 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
                     # print(d.text.strip())
                     job_date.append(d.text.strip())
 
-                if len(job_date) != len(job_title):
-                    print('Error with this company : ', url)
-                    print(job_date, job_title)
+                try :
+                    company_result_df=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Date_published': job_date, 'Job_url': job_url})
+                except ValueError :
+                    scraping_error.append(url)
+                    scraping_flaw.append('arrays of unequal length')
+                    driver.close()
+                    driver.switch_to.window(driver.window_handles[0])
+                    continue
+
+                today_result_df=company_result_df[(company_result_df['Date_published'] == '1 day ago') | (company_result_df['Date_published'].str.contains('hour'))]
+
+                jobs_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
+
+                new_jobs_df=pd.concat([jobs_df, today_result_df], ignore_index=True)
+
+                new_jobs_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
 
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
-
-    job_df=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Date_published': job_date, 'Job_url': job_url})
-
-    # filtrer les offres d'emploi postées aujourd'hui
-    job_df=job_df[(job_df['Date_published'] == '1 day ago') | ('hour' in job_df['Date_published'])]
-
-    job_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
 
     pd.DataFrame({'Companies with no jobs': no_jobs}).to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/no_jobs_list.csv', index=False)
 
     pd.DataFrame({'Faulty links': faulty_links}).to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/faulty_links_list.csv', index=False)
 
+    pd.DataFrame({'URLs': scraping_error, 'Error' : scraping_flaw}).to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/scraping_errors.csv', index=False)
+
     driver.close()
 
     print("*************************************")
     print("Done!")
-    print(f"Number of jobs posted today = {len(job_df)}")
+    print(f"Number of jobs posted today = {len(pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv'))}")
     print("*************************************")

@@ -1,14 +1,7 @@
 import pandas as pd
 
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
-from bs4 import BeautifulSoup
-from selenium.webdriver.common.keys import Keys
-
-from utils import get_urls, get_jobs
+from utils import get_urls
+from utils_copy import get_jobs
 
 # instantier le dataframe des entreprises
 # company_list_df = pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/liste_initiale.csv', sep=';')
@@ -21,4 +14,10 @@ keyword='data' # instancier le mot clé à chercher dans les offres
 
 url_list=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
 
-get_jobs(url_list[119:131], keyword) # récupérer les offres sur linkedin dans new_job_offers.csv
+get_jobs(url_list[30:], keyword) # récupérer les offres sur linkedin dans new_job_offers.csv
+
+
+# Repackager le code pour qu'à chaque entreprise, un dataframe soit créé puis ajouté
+# à un dataframe global. Permettra de ne pas perdre les données si le code plante
+
+# Trier les offres par date de publication contenant hour/day (exclure week et month?)"
