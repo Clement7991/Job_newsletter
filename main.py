@@ -1,7 +1,7 @@
 import pandas as pd
 
-from utils import get_urls
-from utils_copy import get_jobs
+from utils import get_urls, get_jobs
+
 
 # instantier le dataframe des entreprises
 # company_list_df = pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/liste_initiale.csv', sep=';')
