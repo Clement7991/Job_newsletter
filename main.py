@@ -10,6 +10,6 @@ from utils import get_urls, get_jobs
 # RECUPERER LES OFFRES D'EMPLOI
 keyword='data' # instancier le mot clé à chercher dans les offres
 
-url_list=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
+url_list=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=';')
 
-get_jobs(url_list.iloc[:1], keyword) # récupérer les offres sur linkedin dans new_job_offers.csv
+get_jobs(url_list, keyword) # récupérer les offres sur linkedin dans new_job_offers.csv

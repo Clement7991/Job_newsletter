@@ -56,7 +56,7 @@ def get_urls(df):
         driver.get(url)
         driver.implicitly_wait(3)
         soup = BeautifulSoup(driver.page_source, 'html.parser', multi_valued_attributes=None)
-        desired_link = soup.find(href=lambda href: 'linkedin/company/' in str(href))
+        desired_link = soup.find(href=lambda href: 'linkedin.com/company/' in str(href))
         if desired_link != None:
             linkedin.append(desired_link.get('href'))
         else :
