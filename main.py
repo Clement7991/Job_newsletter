@@ -14,7 +14,7 @@ keyword='data' # instancier le mot clé à chercher dans les offres
 
 url_list=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
 
-get_jobs(url_list[30:], keyword) # récupérer les offres sur linkedin dans new_job_offers.csv
+get_jobs(url_list, keyword) # récupérer les offres sur linkedin dans new_job_offers.csv
 
 
 # Repackager le code pour qu'à chaque entreprise, un dataframe soit créé puis ajouté

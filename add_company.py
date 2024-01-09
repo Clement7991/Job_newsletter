@@ -1,26 +1,22 @@
+from annotated_types import LowerCase
 import pandas as pd
+from utils import add_company, get_jobs
 
-name=[]
-site=[]
-lk=[]
-company_name=input('Company name: ')
-site_url=input('Company website url: ')
-lk_url=input('Company LinkedIn url: ')
+add_company()
 
-name.append(company_name)
-site.append(site_url)
-lk.append(lk_url)
+answer = input('Do you wish to launch a new search? (y/n) :')
 
+if answer.lower() == 'y' or answer.lower() == 'yes':
+    keyword = 'data'
+    df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
+    get_jobs(df, keyword)
 
-tmp=pd.DataFrame({'Company':name, 'URL': site, 'Linkedin': lk})
+else:
+    answer2=input('Do you wish to launch a search just for this company ? (y/n) :')
+    if answer2.lower() == 'y' or answer2.lower() == 'yes':
+        keyword = 'data'
+        df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
+        get_jobs(df.iloc[-1:], keyword)
 
-df=pd.read_csv('data/company_urls.csv', sep=',')
-
-df.drop(df.columns[0], axis=1, inplace=True)
-
-updated_df=pd.concat([df, tmp], ignore_index=True)
-
-updated_df.to_csv('data/company_urls.csv', sep=',')
-
-print("company added to list. See below...")
-print(updated_df.tail(3))
+    else :
+        print('The company has been added to the list.')

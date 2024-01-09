@@ -77,8 +77,8 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     nouveau fichier csv
     '''
     # Ajouter la requête jobs
-    linkedin_list['Linkedin'] = linkedin_list['Linkedin'].apply(lambda x: str(x)+'jobs/' if str(x).endswith('/') else str(x)+'/jobs/')
-    linkedin_list.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/linkedin_job_links.csv', index=False)
+    linkedin_series=linkedin_list['Linkedin']
+    linkedin_list= linkedin_series.apply(lambda x: str(x)+'jobs/' if str(x).endswith('/') else str(x)+'/jobs/')
 
     # Sauvegarder les anciennes offres d'emploi
     old_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
@@ -141,7 +141,7 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     scraping_flaw=[]
 
     # se rendre sur chaque page linkedin et récupérer les offres d'emploi
-    for url in linkedin_list['Linkedin']:
+    for url in linkedin_list:
         try :
             driver.get(url)
             driver.implicitly_wait(5)
@@ -255,3 +255,28 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     print("Done!")
     print(f"Number of jobs posted today = {len(pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv'))}")
     print("*************************************")
+
+def add_company():
+    name=[]
+    site=[]
+    lk=[]
+
+    company_name=input('Company name: ')
+    name.append(company_name)
+
+    site_url=input('Company website url: ')
+    site.append(site_url)
+
+    lk_url=input('Company LinkedIn url: ')
+    lk.append(lk_url)
+
+
+    tmp=pd.DataFrame({'Company':name, 'URL': site, 'Linkedin': lk})
+
+    df=pd.read_csv('data/company_urls.csv', sep=',')
+
+    df.drop(df.columns[0], axis=1, inplace=True)
+
+    updated_df=pd.concat([df, tmp], ignore_index=True)
+
+    updated_df.to_csv('data/company_urls.csv', sep=',')
