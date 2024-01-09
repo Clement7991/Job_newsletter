@@ -160,7 +160,7 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
                 faulty_links.append(url)
                 continue
 
-            job_box.send_keys('Data')
+            job_box.send_keys(keywords)
             search_button=driver.find_element(By.XPATH, '//a[text()="Search"]')
             search_button.click()
             driver.switch_to.window(driver.window_handles[1])
