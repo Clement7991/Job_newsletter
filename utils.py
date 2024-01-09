@@ -273,10 +273,10 @@ def add_company():
 
     tmp=pd.DataFrame({'Company':name, 'URL': site, 'Linkedin': lk})
 
-    df=pd.read_csv('data/company_urls.csv', sep=',')
+    df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
 
     df.drop(df.columns[0], axis=1, inplace=True)
 
     updated_df=pd.concat([df, tmp], ignore_index=True)
 
-    updated_df.to_csv('data/company_urls.csv', sep=',')
+    updated_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
