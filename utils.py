@@ -65,13 +65,13 @@ def get_urls(df):
     # Rassembler les url web et linkedin dans un dataframe
     results=pd.DataFrame({'Company': df['Company'], 'URL': url_list, 'Linkedin': linkedin})
 
-    results.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', index=False)
+    results.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=';', index=False)
 
     driver.close()
     return results
 
 
-def get_jobs(linkedin_list, keywords : str = 'Data'):
+def get_jobs(linkedin_list, keyword : str = 'Data'):
     ''' Prend une liste de liens linkedin et des mots clefs en entrée et met à jour le fichier csv
     contenant les offres d'emploi postées aujourd'hui tout en sauvegardant les anciennes offres dans un
     nouveau fichier csv
@@ -131,10 +131,6 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
     #Applying a delay for the web page to load
     driver.implicitly_wait(5)
 
-    job_company=[]
-    job_title=[]
-    job_date=[]
-    job_url=[]
     faulty_links=[]
     no_jobs=[]
     scraping_error=[]
@@ -160,7 +156,7 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
                 faulty_links.append(url)
                 continue
 
-            job_box.send_keys(keywords)
+            job_box.send_keys(' ')
             search_button=driver.find_element(By.XPATH, '//a[text()="Search"]')
             search_button.click()
             driver.switch_to.window(driver.window_handles[1])
@@ -179,69 +175,65 @@ def get_jobs(linkedin_list, keywords : str = 'Data'):
                 driver.switch_to.window(driver.window_handles[0])
                 continue
 
-            else :
 
-                job_company=[]
-                job_title=[]
-                job_date=[]
-                job_url=[]
+            job_company=[]
+            job_title=[]
+            job_date=[]
+            job_url=[]
 
-                #close chat window to avoid date/time errors
+            #close chat window to avoid date/time errors
+            soup=BeautifulSoup(driver.page_source, 'html.parser', multi_valued_attributes=None)
+
+            chat_search=soup.find(id='msg-overlay-list-bubble-search__search-typeahead-input')
+            if chat_search is not None :
                 chat_window = driver.find_element(By.XPATH, '//*[@id="msg-overlay"]/div[1]/header/div[2]/button')
-                try :
-                    if driver.find_element(By.XPATH, '//*[@id="msg-overlay-list-bubble-search__search-typeahead-input"]') != None:
-                        chat_window.click()
-                        driver.implicitly_wait(2)
-                except :
-                    scraping_error.append(url)
-                    scraping_flaw.append('Unable to locate element')
-                    driver.close()
-                    driver.switch_to.window(driver.window_handles[0])
-                    continue
+                chat_window.click()
+                driver.implicitly_wait(2)
 
-                job_results=WebDriverWait(driver, 10).until(ec.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')))
-                results=job_results.find_element(By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')
-                job_number=int(results.text.split(' ')[0])
+            job_results=WebDriverWait(driver, 10).until(ec.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')))
+            results=job_results.find_element(By.XPATH, '//*[@id="main"]/div/div[1]/header/div[1]/small/div/span')
+            job_number=int(results.text.split(' ')[0])
 
-                soup=BeautifulSoup(driver.page_source, 'html.parser', multi_valued_attributes=None)
+            soup=BeautifulSoup(driver.page_source, 'html.parser', multi_valued_attributes=None)
 
-                title_url=soup.find_all(class_='disabled ember-view job-card-container__link job-card-list__title')
-                for jobs in list(title_url)[:job_number+1]:
-                    # print(jobs.text.strip())
-                    job_title.append(jobs.text.strip())
-                    # print(jobs.get('href').strip())
-                    job_url.append("https://www.linkedin.com/"+jobs.get('href').strip())
+            title_url=soup.find_all(class_='disabled ember-view job-card-container__link job-card-list__title')
+            for jobs in list(title_url)[:job_number]:
+                # print(jobs.text.strip())
+                job_title.append(jobs.text.strip())
+                # print(jobs.get('href').strip())
+                job_url.append("https://www.linkedin.com/"+jobs.get('href').strip())
 
-                companies=soup.find_all(class_='job-card-container__primary-description ')
-                for company in list(companies)[:job_number+1]:
-                    # print(company.string.strip())
-                    job_company.append(company.string.strip())
+            companies=soup.find_all(class_='job-card-container__primary-description ')
+            for company in list(companies)[:job_number]:
+                # print(company.string.strip())
+                job_company.append(company.string.strip())
 
-                # Make sure it doesn't go to Recommendations
-                dates=soup.find_all('time')
-                for d in list(dates)[:job_number+1]:
-                    # print(d.text.strip())
-                    job_date.append(d.text.strip())
+            # Make sure it doesn't go to Recommendations
+            dates=soup.find_all('time')
+            for d in list(dates)[:job_number]:
+                # print(d.text.strip())
+                job_date.append(d.text.strip())
 
-                try :
-                    company_result_df=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Date_published': job_date, 'Job_url': job_url})
-                except ValueError :
-                    scraping_error.append(url)
-                    scraping_flaw.append('arrays of unequal length')
-                    driver.close()
-                    driver.switch_to.window(driver.window_handles[0])
-                    continue
-
-                today_result_df=company_result_df[(company_result_df['Date_published'] == '1 day ago') | (company_result_df['Date_published'].str.contains('hour'))]
-
-                jobs_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
-
-                new_jobs_df=pd.concat([jobs_df, today_result_df], ignore_index=True)
-
-                new_jobs_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
-
+            try :
+                result=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Date_published': job_date, 'Job_url': job_url})
+            except ValueError :
+                scraping_error.append(url)
+                scraping_flaw.append('arrays of unequal length')
                 driver.close()
                 driver.switch_to.window(driver.window_handles[0])
+                continue
+
+
+            today_result_df=result[((result['Date_published'] == '1 day ago') | (result['Date_published'].str.contains('hour'))) & (result['Job_title'].str.contains(keyword, case=False))]
+
+            jobs_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
+
+            new_jobs_df=pd.concat([jobs_df, today_result_df], ignore_index=True)
+
+            new_jobs_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
+
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
 
     pd.DataFrame({'Companies with no jobs': no_jobs}).to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/no_jobs_list.csv', index=False)
 
@@ -273,10 +265,10 @@ def add_company():
 
     tmp=pd.DataFrame({'Company':name, 'URL': site, 'Linkedin': lk})
 
-    df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
+    df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=';')
 
     df.drop(df.columns[0], axis=1, inplace=True)
 
     updated_df=pd.concat([df, tmp], ignore_index=True)
 
-    updated_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=',')
+    updated_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=';')

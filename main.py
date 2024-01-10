@@ -8,7 +8,7 @@ from utils import get_urls, get_jobs
 # url_df.to_csv('data/test_links/csv')
 
 # RECUPERER LES OFFRES D'EMPLOI
-keyword='data' # instancier le mot clé à chercher dans les offres
+keyword='data' # inst   ancier le mot clé à chercher dans les offres
 
 url_list=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/company_urls.csv', sep=';')
 
