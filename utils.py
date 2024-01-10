@@ -156,7 +156,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
                 faulty_links.append(url)
                 continue
 
-            job_box.send_keys(' ')
+            job_box.send_keys('Data')
             search_button=driver.find_element(By.XPATH, '//a[text()="Search"]')
             search_button.click()
             driver.switch_to.window(driver.window_handles[1])
@@ -224,7 +224,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
                 continue
 
 
-            today_result_df=result[((result['Date_published'] == '1 day ago') | (result['Date_published'].str.contains('hour'))) & (result['Job_title'].str.contains(keyword, case=False))]
+            today_result_df=result[(result['Date_published'] == '1 day ago') | (result['Date_published'].str.contains('hour'))]
 
             jobs_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
 
