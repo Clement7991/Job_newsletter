@@ -160,7 +160,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
             search_button=driver.find_element(By.XPATH, '//a[text()="Search"]')
             search_button.click()
             driver.switch_to.window(driver.window_handles[1])
-
+            driver.implicitly_wait(2)
 
             while True:
                 old_height = driver.execute_script("return document.body.scrollHeight")
@@ -206,7 +206,6 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
                 job_url.append("https://www.linkedin.com/"+jobs.get('href').strip())
 
             location = soup.find_all(class_='job-card-container__metadata-item ')
-            print(location)
             for loc in list(location)[:job_number]:
                 job_location.append(loc.text.strip())
 
