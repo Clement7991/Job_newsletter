@@ -118,11 +118,11 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
     #Locating the email field on the Linkedin login page
     username = driver.find_element(By.XPATH, '//*[@id="session_key"]')
     #Entering in an email address
-    username.send_keys('clement7991@hotmail.fr')
+    pass_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/pass.csv', sep=',')
+    username.send_keys(pass_df['username'][0])
     #Locating the password field on the Linkedin login page
     password = driver.find_element(By.XPATH,'//*[@id="session_password"]')
     #Entering in a password
-    pass_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/pass.csv', sep=';')
     password.send_keys(pass_df['pass'][0])
     #Locating the Login button on the Linkedin login page
     log_in_button= driver.find_element(By.XPATH,'//*[@id="main-content"]/section[1]/div/div/form/div[2]/button')
@@ -161,6 +161,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
             search_button.click()
             driver.switch_to.window(driver.window_handles[1])
 
+
             while True:
                 old_height = driver.execute_script("return document.body.scrollHeight")
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -178,6 +179,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
 
             job_company=[]
             job_title=[]
+            job_location=[]
             job_date=[]
             job_url=[]
 
@@ -203,6 +205,11 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
                 # print(jobs.get('href').strip())
                 job_url.append("https://www.linkedin.com/"+jobs.get('href').strip())
 
+            location = soup.find_all(class_='job-card-container__metadata-item ')
+            print(location)
+            for loc in list(location)[:job_number]:
+                job_location.append(loc.text.strip())
+
             companies=soup.find_all(class_='job-card-container__primary-description ')
             for company in list(companies)[:job_number]:
                 # print(company.string.strip())
@@ -215,7 +222,7 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
                 job_date.append(d.text.strip())
 
             try :
-                result=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Date_published': job_date, 'Job_url': job_url})
+                result=pd.DataFrame({'Company': job_company, 'Job_title': job_title, 'Location': job_location, 'Date_published': job_date, 'Job_url': job_url})
             except ValueError :
                 scraping_error.append(url)
                 scraping_flaw.append('arrays of unequal length')
@@ -225,10 +232,10 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
 
 
             today_result_df=result[(result['Date_published'] == '1 day ago') | (result['Date_published'].str.contains('hour'))]
-
+            idf_result_df=today_result_df[today_result_df['Location'].str.contains('Île-de-France')]
             jobs_df=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv')
 
-            new_jobs_df=pd.concat([jobs_df, today_result_df], ignore_index=True)
+            new_jobs_df=pd.concat([jobs_df, idf_result_df], ignore_index=True)
 
             new_jobs_df.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/new_job_offers.csv', index=False)
 
