@@ -162,13 +162,17 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
             driver.switch_to.window(driver.window_handles[1])
             driver.implicitly_wait(2)
 
-            # while True:
-            #     old_height = driver.execute_script("return document.body.scrollHeight")
-            #     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            #     driver.implicitly_wait(2)
-            #     new_height = driver.execute_script("return document.body.scrollHeight")
-            #     if new_height == old_height:
-            #         break
+            try:
+                while True:
+                    old_height = driver.execute_script("return document.body.scrollHeight")
+                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    driver.implicitly_wait(2)
+                    new_height = driver.execute_script("return document.body.scrollHeight")
+                    if new_height == old_height:
+                        break
+            except :
+                faulty_links.append(url)
+                continue
 
             if "No matching jobs found." in driver.page_source:
                 no_jobs.append(url)
