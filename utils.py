@@ -88,7 +88,6 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
     old_job_offers=pd.read_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/old_job_offers.csv')
 
     history_of_offers = pd.concat([old_df, old_job_offers], ignore_index=True)
-    history_of_offers.drop_duplicates(inplace=True)
     history_of_offers.to_csv('/home/clem7991/code/Clement7991/local_job_newsletter/data/history_job_offers.csv', index=False)
 
     # Vider le fichier new_job_offers.csv
@@ -162,17 +161,13 @@ def get_jobs(linkedin_list, keyword : str = 'Data'):
             driver.switch_to.window(driver.window_handles[1])
             driver.implicitly_wait(2)
 
-            try:
-                while True:
-                    old_height = driver.execute_script("return document.body.scrollHeight")
-                    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                    driver.implicitly_wait(2)
-                    new_height = driver.execute_script("return document.body.scrollHeight")
-                    if new_height == old_height:
-                        break
-            except :
-                faulty_links.append(url)
-                continue
+            while True:
+                old_height = driver.execute_script("return document.body.scrollHeight")
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                driver.implicitly_wait(2)
+                new_height = driver.execute_script("return document.body.scrollHeight")
+                if new_height == old_height:
+                    break
 
             if "No matching jobs found." in driver.page_source:
                 no_jobs.append(url)
